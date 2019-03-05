@@ -15,20 +15,14 @@ choco install -y docker-desktop
 
 ## Build a release
 
-First build the image that will be used to create the linux release:
+First build the image that will contain the OTP release:
 
 ```cli
-docker build . -t elixir-releaser
+docker build . -t elixir-app
 ```
 
-Set `PATH_TO_APP` to the directory on your PC. The project will be volumed into the image:
+Run your release:
 
 ```cli
-set PATH_TO_APP=/c/example/workdir
-```
-
-Create your linux release:
-
-```cli
-docker run --rm -it -v %PATH_TO_APP%:/app elixir-releaser
+docker run --rm -it -p 4000:4001 -e PORT=4001 elixir-app
 ```

@@ -15,22 +15,25 @@ RUN mix local.hex --force \
  && mix local.rebar --force \
  && mix archive.install hex --force phx_new 1.4.0
 
-FROM base
+FROM base AS build
 
-# User should volume their app onto the WORKDIR: /usr/app
 WORKDIR /app
 
-CMD rm -rf deps \
- && rm -rf _build \
- && rm -rf assets/node_modules \
+COPY . /app
+
+RUN rm -rf /app/deps \
+ && rm -rf /app/_build \
+ && rm -rf /app/assets/node_modules \
  && mix do deps.get, compile \
-#  && mix compile \
-## If there is no rel/config.exs file, call release.init function
- && [ -f ./rel/config.exs ] || mix release.init \ 
  && cd assets \
  && npm install \
  && ./node_modules/webpack/bin/webpack.js --mode production \
  && cd .. \
  && mix phx.digest \
- && MIX_ENV=prod mix release --env=prod \
- && tail -f /dev/null
+ && MIX_ENV=prod mix release --env=prod 
+
+FROM elixir:1.8.1
+
+COPY --from=build /app/_build/prod/rel/hello /app/hello
+
+CMD PORT=${PORT} /app/hello/bin/hello foreground
