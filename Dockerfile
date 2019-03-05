@@ -21,10 +21,7 @@ WORKDIR /app
 
 COPY . /app
 
-RUN rm -rf /app/deps \
- && rm -rf /app/_build \
- && rm -rf /app/assets/node_modules \
- && mix do deps.get, compile \
+RUN mix do deps.get, compile \
  && cd assets \
  && npm install \
  && ./node_modules/webpack/bin/webpack.js --mode production \
@@ -34,6 +31,10 @@ RUN rm -rf /app/deps \
 
 FROM elixir:1.8.1
 
-COPY --from=build /app/_build/prod/rel/hello /app/hello
+WORKDIR /app
 
-CMD PORT=${PORT} /app/hello/bin/hello foreground
+COPY --from=build /app/_build/prod/rel/hello/releases/0.1.0/hello.tar.gz /app/hello.tar.gz
+
+RUN tar xvf hello.tar.gz
+
+CMD PORT=${PORT} ./bin/hello start
